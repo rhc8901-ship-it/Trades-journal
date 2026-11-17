@@ -1,3 +1,4 @@
+
 name: Build RC Android APK
 
 on:
@@ -29,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare web assets and bundle native voice bridge
+      - name: Prepare web assets and voice bridge
         run: |
           mkdir -p www
           cp index.html manifest.json sw.js icon-192.png icon-512.png www/
@@ -39,17 +40,22 @@ jobs:
         run: npx cap add android
 
       - name: Generate Android launcher icons
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#06080e' --iconBackgroundColorDark '#06080e' --splashBackgroundColor '#06080e' --splashBackgroundColorDark '#06080e'
+        run: |
+          npx @capacitor/assets generate --android \
+            --iconBackgroundColor '#06080e' \
+            --iconBackgroundColorDark '#06080e' \
+            --splashBackgroundColor '#06080e' \
+            --splashBackgroundColorDark '#06080e'
 
-      - name: Sync Capacitor plugins and web assets
+      - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Verify speech plugin package and web bridge
+      - name: Verify speech plugin
         run: |
           npm ls @capacitor-community/speech-recognition --depth=0
           test -s www/voice-bridge.js
           test -d node_modules/@capacitor-community/speech-recognition/android
-          echo "Speech plugin package and bundled JS bridge are present. Native registration is handled by the successful cap sync step."
+          echo "Speech plugin and bridge verified."
 
       - name: Build debug APK
         working-directory: android
@@ -57,7 +63,7 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: RC-Trading-Journal-APK
